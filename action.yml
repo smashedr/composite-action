@@ -1,39 +1,131 @@
-name: "Composite Action"
-description: "Composite Action Template"
+name: "Zensical Action"
+description: "Easily Build Zensical Docs and Optionally Deploy to GitHub Pages."
 author: "Shane"
 
 branding:
-  icon: "type"
-  color: "green"
-
-# DO NOT EDIT ABOVE
+  icon: "book-open"
+  color: "orange"
 
 inputs:
+  version:
+    description: "Zensical Version"
+  uv-version:
+    description: "UV Version"
+  python-version:
+    description: "Python Version"
+  directory:
+    description: "Build Directory"
+    default: "."
+  path:
+    description: "Site Path"
+    default: "site"
+  upload:
+    description: "Upload: github-pages, artifact, none"
+    default: "github-pages"
   name:
-    description: "Name"
+    description: "Artifact Name"
+    default: "artifact"
+  checkout:
+    description: "Checkout Project"
+    default: "true"
+  deploy:
+    description: "Deploy to GitHub Pages"
+    default: "true"
+  summary:
+    description: "Add Job Summary"
+    default: "true"
 
 outputs:
+  page_url:
+    description: "Zensical Version"
+    value: ${{ steps.deployment.outputs.page_url }}
   version:
-    description: "Version"
-    value: ${{ steps.version.outputs.version }}
+    description: "Zensical Version"
+    value: ${{ steps.install.outputs.version }}
+  path:
+    description: "Site Directory"
+    value: ${{ inputs.path }}
+  name:
+    description: "Artifact Name"
+    value: ${{ inputs.name }}
 
 runs:
   using: "composite"
   steps:
-    - name: "Input"
-      id: input
-      shell: bash
-      run: |
-        echo "inputs.name: ${{ inputs.name }}"
+    - name: "Checkout"
+      if: ${{ inputs.checkout == 'true' }}
+      uses: actions/checkout@v5
 
-    - name: "Version"
-      id: version
-      shell: bash
-      run: |
-        echo "version=1.0.0" >> "$GITHUB_OUTPUT"
+    - name: "Install UV"
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: ${{ inputs.uv-version }}
+        python-version: ${{ inputs.python-version }}
 
-    - name: "Debug"
-      id: debug
+    - name: "Setup UV"
       shell: bash
       run: |
-        echo "version: ${{ steps.version.outputs.version || 'unknown' }}"
+        uv venv
+
+    - name: "Install Zensical"
+      id: install
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.version }}" ]; then
+           uv pip install zensical==${{ inputs.version }}
+        else
+           uv pip install zensical
+        fi
+        echo "version=$(uv run zensical --version)" >> "$GITHUB_OUTPUT"
+
+    - name: "Build"
+      id: build
+      working-directory: ${{ inputs.directory }}
+      shell: bash
+      run: |
+        uv run zensical build -c
+
+    - name: "Upload Artifact"
+      if: ${{ inputs.upload == 'artifact' }}
+      uses: actions/upload-artifact@v5
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        if-no-files-found: "error"
+        include-hidden-files: true
+
+    - name: "Upload Pages Artifact"
+      if: ${{ inputs.upload == 'github-pages' }}
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: ${{ inputs.path }}
+
+    - name: "Deploy Pages"
+      if: ${{ inputs.deploy == 'true' && inputs.upload == 'github-pages' }}
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+    - name: "Summary"
+      if: ${{ always() && inputs.summary == 'true' }}
+      env:
+        path: ${{ inputs.path }}
+        version: ${{ steps.install.outputs.version || 'unknown' }}
+      continue-on-error: true
+      shell: bash
+      run: |
+        markdown="# Zensical Build Action\n\n"
+        markdown+="zensical version: \`${version}\`\n\n"
+        if [ "${{ steps.build.outcome }}" == "success" ];then
+          markdown+="✅ Build Success\n\n"
+        else
+          markdown+="⛔ Build Failure\n\n"
+        fi
+        if [ -d "${path}" ];then
+          markdown+="<details><summary>Build Tree</summary>\n\n\`\`\`text\n"
+          markdown+="$(tree ${path} || ls -lAhR ${path} 2>&1 ||:)\n"
+          markdown+="\`\`\`\n\n</details>\n\n"
+        else
+          markdown+="⛔ Path Not Found: ${path}\n\n"
+        fi
+        markdown+="---\n\n"
+        echo -e "${markdown}" >> $GITHUB_STEP_SUMMARY
