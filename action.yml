@@ -1,0 +1,37 @@
+name: "Composite Action"
+description: "Composite Action Template"
+author: "Shane"
+
+branding:
+  icon: "type"
+  color: "green"
+
+inputs:
+  name:
+    description: "Name"
+
+outputs:
+  version:
+    description: "Version"
+    value: ${{ steps.version.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Input"
+      id: input
+      shell: bash
+      run: |
+        echo "inputs.name: ${{ inputs.name }}"
+
+    - name: "Version"
+      id: version
+      shell: bash
+      run: |
+        echo "version=1.0.0" >> "$GITHUB_OUTPUT"
+
+    - name: "Debug"
+      id: debug
+      shell: bash
+      run: |
+        echo "version: ${{ steps.version.outputs.version || 'unknown' }}"
