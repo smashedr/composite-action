@@ -6,6 +6,8 @@ branding:
   icon: "type"
   color: "green"
 
+# DO NOT EDIT ABOVE
+
 inputs:
   name:
     description: "Name"

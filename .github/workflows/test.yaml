@@ -6,16 +6,16 @@ on:
   workflow_dispatch:
   push:
     branches: ["**"]
-    paths:
-      - ".github/workflows/test.yaml"
-      - "dist/**"
-      - "src/**"
-      - "package*.json"
-      - "requirements*.txt"
-      - "action.yml"
-      - "Dockerfile"
-      - "pyproject.toml"
-      - "uv.lock"
+    #paths:
+    #  - ".github/workflows/test.yaml"
+    #  - "dist/**"
+    #  - "src/**"
+    #  - "package*.json"
+    #  - "requirements*.txt"
+    #  - "action.yml"
+    #  - "Dockerfile"
+    #  - "pyproject.toml"
+    #  - "uv.lock"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
