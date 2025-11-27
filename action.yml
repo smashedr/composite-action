@@ -11,6 +11,10 @@ branding:
 inputs:
   name:
     description: "Name"
+  prepare:
+    description: "Prepare Script (Before Build)"
+  post:
+    description: "Post Script (After Build)"
 
 outputs:
   version:
@@ -37,3 +41,9 @@ runs:
       shell: bash
       run: |
         echo "version: ${{ steps.version.outputs.version || 'unknown' }}"
+
+    - name: "Prepare"
+      working-directory: ${{ inputs.prepare }}
+      shell: bash
+      run: |
+        ${{ inputs.prepare }}
