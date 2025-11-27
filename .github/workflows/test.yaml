@@ -58,6 +58,7 @@ jobs:
         with:
           name: "Ralf"
           prepare: "pwd && ls"
+          project: true
 
       - name: "Validate Outputs"
         if: ${{ !github.event.act }}
