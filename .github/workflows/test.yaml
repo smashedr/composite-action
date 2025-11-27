@@ -57,7 +57,7 @@ jobs:
         uses: ./
         with:
           name: "Ralf"
-          prepare: "whoami"
+          prepare: "pwd && ls"
 
       - name: "Validate Outputs"
         if: ${{ !github.event.act }}
