@@ -46,16 +46,19 @@ runs:
         ls ${{ inputs.project == 'false' && '-lAh' || '' }} .
 
     - name: "Env Var 1"
+      id: test
       shell: bash
       run: |
-        echo "MY_ENV_VAR=myValue" >> $GITHUB_ENV
-        echo "MY_ENV_VAR: ${MY_ENV_VAR}"
-        #echo "version=$(uv run zensical --version)" >> "$GITHUB_OUTPUT"
+        myvar="$(echo "ralf broke it")"
+        echo "myvar: ${myvar}"
+        echo "MY_ENV_VAR=${myvar}" >> $GITHUB_ENV
+        echo "myvar=${myvar}" >> "$GITHUB_OUTPUT"
 
     - name: "Env Var 2"
       shell: bash
       run: |
         echo "MY_ENV_VAR: ${MY_ENV_VAR}"
+        echo "steps.test.outputs.myvar: ${{ steps.test.outputs.myvar }}"
 
     - name: "Prepare"
       if: ${{ inputs.prepare }}
