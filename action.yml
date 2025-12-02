@@ -9,31 +9,128 @@ branding:
 # DO NOT EDIT ABOVE
 
 inputs:
-  name:
-    description: "Name"
+  version:
+    description: "Actionlint Version Tag"
+    default: "latest"
+  arguments:
+    description: "Command Line Arguments"
+  shellcheck_opts:
+    description: "Shellcheck Options"
+  arch:
+    description: "Architecture String"
+  checkout:
+    description: "Checkout Project"
+    default: "false"
+  summary:
+    description: "Add Job Summary"
+    default: "true"
 
 outputs:
-  version:
-    description: "Version"
-    value: ${{ steps.version.outputs.version }}
+  download_url:
+    description: "Actionlint Download URL"
+    value: ${{ steps.install.outputs.browser_download_url }}
 
 runs:
   using: "composite"
   steps:
-    - name: "Input"
-      id: input
-      shell: bash
-      run: |
-        echo "inputs.name: ${{ inputs.name }}"
+    - name: "Checkout"
+      if: ${{ inputs.checkout == 'true' }}
+      uses: actions/checkout@v6
 
-    - name: "Version"
-      id: version
+    - name: "Architecture"
+      id: arch
       shell: bash
       run: |
-        echo "version=1.0.0" >> "$GITHUB_OUTPUT"
+        if [ -n "${{ inputs.arch }}" ];then
+          echo "arch=${{ inputs.arch }}" >> "$GITHUB_OUTPUT"
+        else
+          uname -a
 
-    - name: "Debug"
-      id: debug
+          echo "uname -s: $(uname -s)"
+          kernel=$(uname -s)
+          case "$kernel" in
+            Darwin)   kernel="darwin"   ;;
+            FreeBSD)  kernel="freebsd"  ;;
+            Linux)    kernel="linux"    ;;
+            * )       kernel="linux"    ;;
+          esac
+          echo "kernel: ${kernel}"
+
+          echo "uname -m: $(uname -m)"
+          hardware=$(uname -m)
+          case "$hardware" in
+            x86)      hardware="amd386"  ;;
+            i?86)     hardware="amd386"  ;;
+            amd64)    hardware="amd64"   ;;
+            x86_64)   hardware="amd64"   ;;
+            aarch64)  hardware="arm64"   ;;
+            * )       hardware="amd64"   ;;
+          esac
+          echo "hardware: ${hardware}"
+
+          echo "arch: ${kernel}_${hardware}"
+          echo "arch=${kernel}_${hardware}" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: "Install"
+      id: install
+      env:
+        GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
-        echo "version: ${{ steps.version.outputs.version || 'unknown' }}"
+        "arch: ${{ steps.arch.outputs.arch }}"
+
+        if [ "${{ inputs.version }}" == "latest" ];then
+          tag="latest"
+        else
+          tag="tags/${{ inputs.version }}"
+        fi
+        echo "tag: ${tag}"
+
+        release="$(gh api --cache 1h /repos/rhysd/actionlint/releases/${tag})"
+        #echo "release: ${release}"
+        echo -n "tag_name: " ; echo ${release} | jq -r '.tag_name'
+
+        asset="$(echo ${release} |\
+          jq '[.assets[] | select(.name | contains("${{ steps.arch.outputs.arch }}"))]' |\
+          jq '.[0]')"
+        echo "asset: ${asset}"
+
+        url="$(echo ${asset} | jq -r '.browser_download_url')"
+        echo "url: ${url}"
+
+        echo "browser_download_url=${url}" >> "$GITHUB_OUTPUT"
+
+        curl -sL "${url}" | tar xz -C "${RUNNER_TEMP}" actionlint
+        file "${RUNNER_TEMP}/actionlint" ||:
+        "${RUNNER_TEMP}/actionlint" --version
+
+    - name: "Actionlint"
+      id: actionlint
+      env:
+        SHELLCHECK_OPTS: ${{ inputs.shellcheck_opts }}
+      shell: bash
+      run: |
+        "${RUNNER_TEMP}/actionlint" -color -verbose ${{ inputs.arguments }}
+
+    #- name: "Summary"
+    #  if: ${{ always() && inputs.summary == 'true' }}
+    #  continue-on-error: true
+    #  shell: bash
+    #  run: |
+    #    markdown="# Zensical Action\n\n"
+    #    markdown+="zensical version: \`${version}\`\n\n"
+    #    if [ "${{ steps.actionlint.outcome }}" == "success" ];then
+    #      markdown+="✅ Build Success\n\n"
+    #    else
+    #      markdown+="⛔ Build Failure\n\n"
+    #    fi
+    #    if [ -d "${path}" ];then
+    #      markdown+="<details><summary>Build Tree</summary>\n\n\`\`\`text\n"
+    #      markdown+="$(tree ${path} || ls -lAhR ${path} 2>&1 ||:)\n"
+    #      markdown+="\`\`\`\n\n</details>\n\n"
+    #    else
+    #      markdown+="⛔ Path Not Found: ${path}\n\n"
+    #    fi
+    #    markdown+="---\n\n"
+    #    echo -e "${markdown}" >> $GITHUB_STEP_SUMMARY

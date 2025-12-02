@@ -55,16 +55,5 @@ jobs:
       - name: "Test Local Action"
         id: test
         uses: ./
-        with:
-          name: "Ralf"
-
-      - name: "Validate Outputs"
-        if: ${{ !github.event.act }}
-        env:
-          version: ${{ steps.test.outputs.version }}
-        run: |
-          echo "version: ${version}"
-          if [ -z "${version}" ];then
-            echo "No Output: version"
-            exit 1
-          fi
+        #with:
+        #  name: "Ralf"
