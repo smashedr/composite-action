@@ -93,7 +93,6 @@ runs:
 
         echo "::group::Release - ${tag}"
         release="$(gh api --cache 1h /repos/rhysd/actionlint/releases/${tag})"
-        echo -n "tag_name: " ; echo ${release} | jq -r '.tag_name'
         echo "release: ${release}"
         echo "::endgroup::"
 
@@ -104,6 +103,9 @@ runs:
         echo "asset: ${asset}"
         echo "::endgroup::"
 
+        tag_name="$(echo ${release} | jq -r '.tag_name')"
+        echo "::group::Download - ${tag_name}"
+
         url="$(echo ${asset} | jq -r '.browser_download_url')"
         echo "Downloading: ${url}"
         echo "browser_download_url=${url}" >> "$GITHUB_OUTPUT"
@@ -111,6 +113,8 @@ runs:
         echo "Destination: ${RUNNER_TEMP}/actionlint"
         curl -sL "${url}" | tar xz -C "${RUNNER_TEMP}" actionlint
         file "${RUNNER_TEMP}/actionlint" ||:
+        echo "::endgroup::"
+
         echo -n "Actionlint Version: "
         "${RUNNER_TEMP}/actionlint" --version
 
