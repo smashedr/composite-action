@@ -105,14 +105,13 @@ runs:
         echo "::endgroup::"
 
         url="$(echo ${asset} | jq -r '.browser_download_url')"
-        echo "url: ${url}"
-
+        echo "Downloading: ${url}"
         echo "browser_download_url=${url}" >> "$GITHUB_OUTPUT"
-        echo "::endgroup::"
 
-        echo "Downloading Actionlint: ${RUNNER_TEMP}/actionlint"
+        echo "Destination: ${RUNNER_TEMP}/actionlint"
         curl -sL "${url}" | tar xz -C "${RUNNER_TEMP}" actionlint
         file "${RUNNER_TEMP}/actionlint" ||:
+        echo -n "Actionlint Version: "
         "${RUNNER_TEMP}/actionlint" --version
 
     - name: "Actionlint"
