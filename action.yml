@@ -41,6 +41,8 @@ runs:
       id: arch
       shell: bash
       run: |
+        echo "::group::Parsing Architecture"
+
         if [ -n "${{ inputs.arch }}" ];then
           echo "arch=${{ inputs.arch }}" >> "$GITHUB_OUTPUT"
         else
@@ -71,6 +73,7 @@ runs:
           echo "arch: ${kernel}_${hardware}"
           echo "arch=${kernel}_${hardware}" >> "$GITHUB_OUTPUT"
         fi
+        echo "::endgroup::"
 
     - name: "Install"
       id: install
@@ -78,30 +81,37 @@ runs:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
-        echo "arch: ${{ steps.arch.outputs.arch }}"
+        echo "Parsing Version"
+        #echo "arch: ${{ steps.arch.outputs.arch }}"
 
         if [ "${{ inputs.version }}" == "latest" ];then
           tag="latest"
         else
           tag="tags/${{ inputs.version }}"
         fi
-        echo "tag: ${tag}"
+        #echo "tag: ${tag}"
 
+        echo "::group::Release - ${tag}"
         release="$(gh api --cache 1h /repos/rhysd/actionlint/releases/${tag})"
-        #echo "release: ${release}"
         echo -n "tag_name: " ; echo ${release} | jq -r '.tag_name'
+        echo "release: ${release}"
+        echo "::endgroup::"
 
+        echo "::group::Asset - ${{ steps.arch.outputs.arch }}"
         asset="$(echo ${release} |\
           jq '[.assets[] | select(.name | contains("${{ steps.arch.outputs.arch }}"))]' |\
           jq '.[0]')"
         echo "asset: ${asset}"
+        echo "::endgroup::"
 
         url="$(echo ${asset} | jq -r '.browser_download_url')"
         echo "url: ${url}"
 
         echo "browser_download_url=${url}" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
 
-        curl -sL "${url}" | tar xz -C "${RUNNER_TEMP}" actionlint
+        echo "Downloading Actionlint: ${RUNNER_TEMP}/actionlint"
+        curl -L "${url}" | tar xz -C "${RUNNER_TEMP}" actionlint
         file "${RUNNER_TEMP}/actionlint" ||:
         "${RUNNER_TEMP}/actionlint" --version
 
