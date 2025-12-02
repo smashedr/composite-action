@@ -120,6 +120,8 @@ runs:
         SHELLCHECK_OPTS: ${{ inputs.shellcheck_opts }}
       shell: bash
       run: |
+        echo "Running Actionlint"
+        echo -e "Running: \e[1;34mactionlint \e[1;36m-color -verbose ${{ inputs.arguments }}"
         "${RUNNER_TEMP}/actionlint" -color -verbose ${{ inputs.arguments }}
 
     #- name: "Summary"
