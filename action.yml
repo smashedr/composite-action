@@ -18,12 +18,6 @@ inputs:
     description: "Shellcheck Options"
   arch:
     description: "Architecture String"
-  checkout:
-    description: "Checkout Project"
-    default: "false"
-  summary:
-    description: "Add Job Summary"
-    default: "true"
 
 outputs:
   download_url:
@@ -33,10 +27,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: "Checkout"
-      if: ${{ inputs.checkout == 'true' }}
-      uses: actions/checkout@v6
-
     - name: "Architecture"
       id: arch
       shell: bash
@@ -118,6 +108,8 @@ runs:
         echo -n "Actionlint Version: "
         "${RUNNER_TEMP}/actionlint" --version
 
+        python -m pip install pyflakes
+
     - name: "Actionlint"
       id: actionlint
       env:
@@ -126,25 +118,3 @@ runs:
       run: |
         echo -e "\e[1;32mRunning: \e[1;34mactionlint \e[1;36m-color -verbose ${{ inputs.arguments }}"
         "${RUNNER_TEMP}/actionlint" -color -verbose ${{ inputs.arguments }}
-
-    #- name: "Summary"
-    #  if: ${{ always() && inputs.summary == 'true' }}
-    #  continue-on-error: true
-    #  shell: bash
-    #  run: |
-    #    markdown="# Zensical Action\n\n"
-    #    markdown+="zensical version: \`${version}\`\n\n"
-    #    if [ "${{ steps.actionlint.outcome }}" == "success" ];then
-    #      markdown+="✅ Build Success\n\n"
-    #    else
-    #      markdown+="⛔ Build Failure\n\n"
-    #    fi
-    #    if [ -d "${path}" ];then
-    #      markdown+="<details><summary>Build Tree</summary>\n\n\`\`\`text\n"
-    #      markdown+="$(tree ${path} || ls -lAhR ${path} 2>&1 ||:)\n"
-    #      markdown+="\`\`\`\n\n</details>\n\n"
-    #    else
-    #      markdown+="⛔ Path Not Found: ${path}\n\n"
-    #    fi
-    #    markdown+="---\n\n"
-    #    echo -e "${markdown}" >> $GITHUB_STEP_SUMMARY
