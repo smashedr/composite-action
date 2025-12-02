@@ -111,7 +111,7 @@ runs:
         echo "::endgroup::"
 
         echo "Downloading Actionlint: ${RUNNER_TEMP}/actionlint"
-        curl -L "${url}" | tar xz -C "${RUNNER_TEMP}" actionlint
+        curl -sL "${url}" | tar xz -C "${RUNNER_TEMP}" actionlint
         file "${RUNNER_TEMP}/actionlint" ||:
         "${RUNNER_TEMP}/actionlint" --version
 
