@@ -57,5 +57,10 @@ jobs:
       - name: "Test Local Action"
         id: test
         uses: ./
+
+      - name: "Validate Outputs"
+        uses: cssnr/validate-outputs-action@master
         with:
-          pyflakes: true
+          outputs: ${{ toJSON(steps.test.outputs) }}
+          data: |
+            download_url:
