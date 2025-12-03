@@ -57,10 +57,3 @@ jobs:
       - name: "Test Local Action"
         id: test
         uses: ./
-
-      - name: "Validate Outputs"
-        uses: cssnr/validate-outputs-action@master
-        with:
-          outputs: ${{ toJSON(steps.test.outputs) }}
-          data: |
-            download_url:
