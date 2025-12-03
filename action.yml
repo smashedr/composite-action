@@ -6,7 +6,7 @@ branding:
   icon: "type"
   color: "green"
 
-# DO NOT EDIT ABOVE - 1
+# DO NOT EDIT ABOVE
 
 inputs:
   version:
