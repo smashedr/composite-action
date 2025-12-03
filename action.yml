@@ -133,6 +133,12 @@ runs:
         path: ${{ runner.temp }}/actionlint
         key: ${{ steps.cache.outputs.cache-primary-key }}
 
+    - name: "Install Pyflakes"
+      if: ${{ inputs.pyflakes != 'false' }}
+      shell: bash
+      run: |
+        python -m pip install pyflakes
+
     - name: "Actionlint"
       id: actionlint
       env:
