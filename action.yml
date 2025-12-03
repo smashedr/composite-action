@@ -144,7 +144,6 @@ runs:
         #python -m pip install pyflakes
         which pyflakes && exit 0
         cd ${{ runner.temp }}
-        ls -lah .
         if [ -f pyflakes-*-py2.py3-none-any.whl ];then
           echo "Installing Cached Pyflakes"
           python -m pip install pyflakes-*-py2.py3-none-any.whl
