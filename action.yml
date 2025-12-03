@@ -27,16 +27,8 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: "Cache Restore"
-      id: cache
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{ runner.temp }}/actionlint
-        key: ${{ runner.os }}-actionlint-${{ inputs.arch }}
-
     - name: "Architecture"
       id: arch
-      if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         echo "::group::Parsing Architecture"
@@ -72,6 +64,13 @@ runs:
           echo "arch=${kernel}_${hardware}" >> "$GITHUB_OUTPUT"
         fi
         echo "::endgroup::"
+
+    - name: "Cache Restore"
+      id: cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ runner.temp }}/actionlint
+        key: actionlint-${{ steps.arch.outputs.arch }}
 
     - name: "Install"
       id: install
