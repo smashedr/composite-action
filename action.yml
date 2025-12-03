@@ -6,7 +6,7 @@ branding:
   icon: "type"
   color: "green"
 
-# DO NOT EDIT ABOVE - 1
+# DO NOT EDIT ABOVE
 
 inputs:
   version:
@@ -118,6 +118,7 @@ runs:
         "${{ runner.temp }}/actionlint" --version
 
     - name: "Cache Save"
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
         path: ${{ runner.temp }}/actionlint
