@@ -67,11 +67,12 @@ runs:
 
     - name: "Cache Clear"
       if: ${{ contains(github.event.head_commit.message, 'delete-actionlint-cache') }}
+      continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
-        gh cache delete actionlint-${{ inputs.version }}-${{ steps.arch.outputs.arch }} ||:
+        gh cache delete actionlint-${{ inputs.version }}-${{ steps.arch.outputs.arch }}
 
     - name: "Cache Restore"
       id: cache
