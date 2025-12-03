@@ -18,7 +18,7 @@ inputs:
     description: "Shellcheck Options"
   pyflakes:
     description: "Install Pyflakes"
-    default: "false"
+    default: "true"
   arch:
     description: "Architecture String"
 
@@ -84,7 +84,7 @@ runs:
         key: actionlint-${{ inputs.version }}-${{ steps.arch.outputs.arch }}
         path: |
           ${{ runner.temp }}/actionlint
-          pyflakes-*-py2.py3-none-any.whl
+          ${{ runner.temp }}/pyflakes-*-py2.py3-none-any.whl
 
     - name: "Download"
       id: download
@@ -145,6 +145,11 @@ runs:
           python -m pip install pyflakes-*-py2.py3-none-any.whl
         fi
 
+    - name: "DEBUG 1"
+      shell: bash
+      run: |
+        ls -lah ${{ runner.temp }}
+
     - name: "Cache Save"
       if: steps.cache.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
@@ -152,7 +157,7 @@ runs:
         key: ${{ steps.cache.outputs.cache-primary-key }}
         path: |
           ${{ runner.temp }}/actionlint
-          pyflakes-*-py2.py3-none-any.whl
+          ${{ runner.temp }}/pyflakes-*-py2.py3-none-any.whl
 
     - name: "Actionlint"
       id: actionlint
