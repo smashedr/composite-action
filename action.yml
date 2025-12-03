@@ -22,7 +22,7 @@ inputs:
 outputs:
   download_url:
     description: "Actionlint Download URL"
-    value: ${{ steps.install.outputs.browser_download_url }}
+    value: ${{ steps.download.outputs.browser_download_url }}
 
 runs:
   using: "composite"
@@ -81,22 +81,20 @@ runs:
         path: ${{ runner.temp }}/actionlint
         key: actionlint-${{ inputs.version }}-${{ steps.arch.outputs.arch }}
 
-    - name: "Install"
-      id: install
+    - name: "Download"
+      id: download
       if: steps.cache.outputs.cache-hit != 'true'
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
-        echo "Parsing Version"
-        #echo "arch: ${{ steps.arch.outputs.arch }}"
+        echo "Downloading Actionlint"
 
         if [ "${{ inputs.version }}" == "latest" ];then
           tag="latest"
         else
           tag="tags/${{ inputs.version }}"
         fi
-        #echo "tag: ${tag}"
 
         echo "::group::Release - ${tag}"
         release="$(gh api --cache 1h /repos/rhysd/actionlint/releases/${tag})"
