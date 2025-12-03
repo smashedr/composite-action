@@ -16,6 +16,9 @@ inputs:
     description: "Command Line Arguments"
   shellcheck_opts:
     description: "Shellcheck Options"
+  pyflakes:
+    description: "Install Pyflakes"
+    default: "false"
   arch:
     description: "Architecture String"
 
