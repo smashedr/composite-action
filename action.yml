@@ -66,12 +66,12 @@ runs:
         echo "::endgroup::"
 
     - name: "Cache Clear"
-      if: ${{ !contains(github.event.head_commit.message, 'delete-actionlint-cache') }}
+      if: ${{ contains(github.event.head_commit.message, 'delete-actionlint-cache') }}
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: |
-        gh cache delete ${{ steps.cache.outputs.cache-primary-key }} ||:
+        gh cache delete actionlint-${{ inputs.version }}-${{ steps.arch.outputs.arch }} ||:
 
     - name: "Cache Restore"
       id: cache
