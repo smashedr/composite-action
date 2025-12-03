@@ -24,11 +24,6 @@ inputs:
   token:
     description: "GitHub PAT"
 
-outputs:
-  download_url:
-    description: "Actionlint Download URL"
-    value: ${{ steps.download.outputs.browser_download_url }}
-
 runs:
   using: "composite"
   steps:
@@ -127,7 +122,6 @@ runs:
 
         url="$(echo ${asset} | jq -r '.browser_download_url')"
         echo "Downloading: ${url}"
-        echo "browser_download_url=${url}" >> "$GITHUB_OUTPUT"
 
         echo "Destination: ${{ runner.temp }}/actionlint"
         curl -sL "${url}" | tar xz -C "${{ runner.temp }}" actionlint
