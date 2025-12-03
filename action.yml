@@ -27,8 +27,16 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: "Cache Restore"
+      id: cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${RUNNER_TEMP}/actionlint
+        key: ${{ runner.os }}-actionlint-${{ inputs.arch }}
+
     - name: "Architecture"
       id: arch
+      if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         echo "::group::Parsing Architecture"
@@ -67,6 +75,7 @@ runs:
 
     - name: "Install"
       id: install
+      if: steps.cache.outputs.cache-hit != 'true'
       env:
         GH_TOKEN: ${{ github.token }}
       shell: bash
@@ -108,7 +117,11 @@ runs:
         echo -n "Actionlint Version: "
         "${RUNNER_TEMP}/actionlint" --version
 
-        python -m pip install pyflakes
+    - name: "Cache Save"
+      uses: actions/cache/save@v4
+      with:
+        path: ${RUNNER_TEMP}/actionlint
+        key: ${{ steps.cache.outputs.cache-primary-key }}
 
     - name: "Actionlint"
       id: actionlint
