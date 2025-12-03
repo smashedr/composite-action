@@ -148,7 +148,9 @@ runs:
     - name: "DEBUG 1"
       shell: bash
       run: |
+        echo "::group::DEBUG 1"
         ls -lah ${{ runner.temp }}
+        echo "::endgroup::"
 
     - name: "Cache Save"
       if: steps.cache.outputs.cache-hit != 'true'
