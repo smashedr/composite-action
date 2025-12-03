@@ -31,7 +31,7 @@ runs:
       id: cache
       uses: actions/cache/restore@v4
       with:
-        path: ${RUNNER_TEMP}/actionlint
+        path: ${{ runner.temp }}/actionlint
         key: ${{ runner.os }}-actionlint-${{ inputs.arch }}
 
     - name: "Architecture"
@@ -109,18 +109,18 @@ runs:
         echo "Downloading: ${url}"
         echo "browser_download_url=${url}" >> "$GITHUB_OUTPUT"
 
-        echo "Destination: ${RUNNER_TEMP}/actionlint"
-        curl -sL "${url}" | tar xz -C "${RUNNER_TEMP}" actionlint
-        file "${RUNNER_TEMP}/actionlint" ||:
+        echo "Destination: ${{ runner.temp }}/actionlint"
+        curl -sL "${url}" | tar xz -C "${{ runner.temp }}" actionlint
+        file "${{ runner.temp }}/actionlint" ||:
         echo "::endgroup::"
 
         echo -n "Actionlint Version: "
-        "${RUNNER_TEMP}/actionlint" --version
+        "${{ runner.temp }}/actionlint" --version
 
     - name: "Cache Save"
       uses: actions/cache/save@v4
       with:
-        path: ${RUNNER_TEMP}/actionlint
+        path: ${{ runner.temp }}/actionlint
         key: ${{ steps.cache.outputs.cache-primary-key }}
 
     - name: "Actionlint"
@@ -130,4 +130,4 @@ runs:
       shell: bash
       run: |
         echo -e "\e[1;32mRunning: \e[1;34mactionlint \e[1;36m-color -verbose ${{ inputs.arguments }}"
-        "${RUNNER_TEMP}/actionlint" -color -verbose ${{ inputs.arguments }}
+        "${{ runner.temp }}/actionlint" -color -verbose ${{ inputs.arguments }}
